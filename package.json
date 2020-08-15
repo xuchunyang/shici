@@ -1,0 +1,14 @@
+{
+  "name": "shige",
+  "version": "1.0.0",
+  "description": "",
+  "main": "none",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Xu Chunyang",
+  "license": "GPL-3.0-or-later",
+  "dependencies": {
+    "mongodb": "^3.6.0"
+  }
+}

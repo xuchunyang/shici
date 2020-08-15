@@ -1,0 +1,91 @@
+#!/usr/bin/env node
+
+const fs = require("fs");
+const MongoClient = require("mongodb").MongoClient;
+
+let cachedClient = null;
+let cachedDb = null;
+
+async function connectToDatabase(uri) {
+  if (cachedDb) return cachedDb;
+
+  const client = new MongoClient(uri, {
+    useNewUrlParser: true,
+    useUnifiedTopology: true,
+  });
+  await client.connect();
+  const db = await client.db(new URL(uri).pathname.slice(1));
+
+  cachedClient = client;
+  cachedDb = db;
+  return db;
+}
+
+async function insertFileToDB(jsonFile, collection) {
+  const contents = fs.readFileSync(jsonFile, "utf8");
+  const data = JSON.parse(contents);
+  await collection.insertMany(data);
+}
+
+async function addShiOrCi(path, shiOrCi, db) {
+  const collection = await db.collection(shiOrCi);
+
+  await collection.createIndex(
+    { id: 1 },
+    {
+      name: "按 chinese-poetry 的 ID 检索",
+      // XXX 好像有重复 ID，是哪个？是有重复，还是一个作品即为诗也是词？
+      // unique: true,
+    }
+  );
+
+  const label = shiOrCi === "shi" ? "诗" : "词";
+  await collection.createIndex(
+    { author: 1, title: 1 },
+    {
+      name: `按${label}的作者和标题检索`,
+      // 有同作者同标题的情况？假设有
+      // unique: true,
+    }
+  );
+
+  for (const fn of findFiles(/^(?:poet|ci)\.(tang|song)\.(\d+)\.json$/)) {
+    const jsonPath = path + "/" + fn;
+    console.log(`Adding ${jsonPath}`);
+    await insertFileToDB(jsonPath, collection)
+  }
+
+  function findFiles(regex) {
+    return fs.readdirSync(path)
+      .filter(fn => regex.test(fn))
+      .sort((fn1, fn2) => {
+        const [dynasty1, index1] = fn1.match(regex).slice(1);
+        const [dynasty2, index2] = fn2.match(regex).slice(1);
+
+        if (dynasty1 === dynasty2) {
+          // 数字越大越靠后
+          return Number(index1) > Number(index2) ? 1 : -1;
+        } else {
+          // tang 排在 song 前面
+          return dynasty1 < dynasty2 ? 1 : -1;
+        }
+      });
+  }
+}
+
+async function main() {
+  if (!process.argv[2] || process.argv[2] === "-h") {
+    console.error(`Usage: ${process.argv[1]} path/to/chinese-poetry`);
+    process.exitCode = 1;
+    return;
+  }
+
+  const MONGODB_URI = process.env.MONGODB_URI || `mongodb://localhost:27017/shici`;
+  const db = await connectToDatabase(MONGODB_URI);
+
+  await addShiOrCi(process.argv[2] + "/json", "shi", db);
+  await addShiOrCi(process.argv[2] + "/ci", "ci", db);
+  cachedClient.close();
+}
+
+main();
