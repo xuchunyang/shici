@@ -29,7 +29,7 @@
         const fd = new FormData(form);
         const author = fd.get("author");
         const title = fd.get("title");
-        fetch("http://localhost:4000/?" + new URLSearchParams({author, title}))
+        fetch("api/search?" + new URLSearchParams({author, title}))
           .then(r => {
             return r.json();
           })
