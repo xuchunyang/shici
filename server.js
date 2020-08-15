@@ -1,6 +1,10 @@
+const assert = require("assert").strict;
 const MongoClient = require("mongodb").MongoClient;
 
-async function search(author, title) {
+let cacheDb = null;
+async function connectToDatabase() {
+  if (cacheDb) return cacheDb;
+
   const uri = process.env.MONGODB_URI || `mongodb://localhost:27017/shici`;
   const client = new MongoClient(uri, {
     useNewUrlParser: true,
@@ -8,7 +12,50 @@ async function search(author, title) {
   });
   await client.connect();
   const db = await client.db(new URL(uri).pathname.slice(1));
+  cacheDb = db;
 
+  return db;
+}
+
+async function random() {
+  const db = await connectToDatabase();
+  const collection = await db.collection(shiOrCi());
+  const cursor = await collection.aggregate(
+    [ { $sample: { size: 1 } } ]
+  );
+  const arr = await cursor.toArray();
+  return arr[0];
+
+  function shiOrCi() {
+    // db.collection("shi").count()
+    const totalShi = 311860;
+    // db.collection("ci").count()
+    const totalCi = 21050;
+    const total = totalShi + totalCi;
+    if (Math.random() * total <= totalCi)
+      return "ci";
+    else
+      return "shi";
+  }
+}
+
+function randomHandler(req, res) {
+  res.setHeader("Content-Type", "application/json");
+  res.setHeader("Access-Control-Allow-Origin", "*");
+  random()
+    .then(data => {
+      console.log(data);
+      res.statusCode = 200;
+      res.end(JSON.stringify(data, null, 2));
+    })
+    .catch(error => {
+      res.statusCode = 500;
+      res.end(JSON.stringify({error: error.message}, null, 2));
+    });
+}
+
+async function search(author, title) {
+  const db = await connectToDatabase();
   let found = await find("shi");
   if (!found) {
     found = await find("ci");
@@ -70,4 +117,4 @@ function handler(req, res) {
 if (require.main === module)
   require("http").createServer(handler) .listen(4000);
 
-module.exports = { handler };
+module.exports = { handler, randomHandler };

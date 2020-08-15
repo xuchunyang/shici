@@ -82,6 +82,7 @@
       <input id="title" name="title" type="text" value="登金陵鳳凰臺" required>
       <div>
         <button>阅读</button>
+        <button class="random">随机</button>
       </div>
     </form>
     <p class="report"></p>
@@ -100,12 +101,21 @@
       const dirCheckbox = document.querySelector("input#vertical-rl");
       const article = document.querySelector(".output");
       const report = document.querySelector(".report");
+      const randomBtn = document.querySelector("button.random");
 
       searchForm.onsubmit = lookup;
       dirCheckbox.onchange = updateDir;
       loadState();
       updateDir();
       lookup();
+      randomBtn.onclick = onRandomButton;
+
+      function onRandomButton(e) {
+        e.preventDefault();
+        report.textContent = `Searching ...`;
+        article.classList.add("hide");
+        myFetch("api/random");
+      }
 
       function updateDir() {
         saveState();
@@ -143,16 +153,9 @@
           dirCheckbox.checked = false;
         }
       }
-      
-      function lookup(e) {
-        report.textContent = `Searching ...`;
-        article.classList.add("hide");
-        saveState();
-        e && e.preventDefault();
-        const fd = new FormData(searchForm);
-        const author = fd.get("author");
-        const title = fd.get("title");
-        fetch("api/search?" + new URLSearchParams({author, title}))
+
+      function myFetch(url) {
+        fetch(url)
           .then(r => {
             return r.json();
           })
@@ -171,6 +174,17 @@
             console.log(error)
             report.textContent = error.message;
           });
+      }
+
+      function lookup(e) {
+        report.textContent = `Searching ...`;
+        article.classList.add("hide");
+        saveState();
+        e && e.preventDefault();
+        const fd = new FormData(searchForm);
+        const author = fd.get("author");
+        const title = fd.get("title");
+        myFetch("api/search?" + new URLSearchParams( { author, title } ));
       };
     </script>
   </body>

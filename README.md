@@ -41,6 +41,10 @@ https://shici-nu.vercel.app/api/search?author=杜甫&title=春望
 }
 ```
 
+获得随机一首诗词：
+
+https://shici-nu.vercel.app/api/random
+
 API 支持支持 CORS。
 
 ## 数据来源
