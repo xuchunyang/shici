@@ -157,6 +157,10 @@
             return r.json();
           })
           .then(j => {
+            if (j.error) {
+              report.textContent = j.error;
+              return;
+            }
             article.querySelector(".title").textContent = j.title;
             article.querySelector(".author").textContent = j.author;
             article.querySelector(".paragraphs").innerHTML = j.paragraphs.map(para => `<p>${para}</p>`).join("\n");
