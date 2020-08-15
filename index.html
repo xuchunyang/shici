@@ -5,28 +5,109 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>诗 · 词</title>
     <style>
+      body {
+        line-height: 1.5;
+        max-width: 750px;
+        margin: 0 auto;
+        text-align: center;
+        position: relative;
+      }
+
+      input,
+      button {
+        font-family: inherit;
+        line-height: inherit;
+        font-size: 100%;
+        padding: 0.1em 0.2em;
+      }
+
+      .search {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+
+      .search input {
+        margin: 0.5em 1em 0.5em 0;
+      }
+
+      .toggle-dir {
+        font-size: 0.9em;
+        color: #333;
+      }
+
+      @media (max-width: 750px) {
+        .search {
+          display: grid;
+          grid-template-columns: auto 1fr;
+          margin: 0 1em;
+        }
+
+        .search div {
+          grid-column: 1 / 3;
+        }
+      }
+
+      article {
+        background-color: #eee;
+        color: #333;
+        /* font-family: "KaiTi TC", "SongTi TC"; */
+        font-size: 1.5rem;
+        padding: 1em;
+        writing-mode: vertical-rl;
+        margin: 0 auto;
+      }
+
+      .toggle-dir {
+        position: absolute;
+        top: 0;
+        right: 0;
+      }
     </style>
   </head>
   <body>
     <h1>诗 · 词</h1>
-    <form>
+    <form class="toggle-dir">
+      <input id="vertical-rl" type="checkbox" checked>
+      <label for="vertical-rl">竖排？</label>
+    </form>
+    <form class="search">
       <label for="author">作者：</label>
       <input id="author" name="author" type="text" required>
       <label for="title">标题：</label>
       <input id="title" name="title" type="text" required>
-      <button>阅读</button>
+      <div>
+        <button>阅读</button>
+      </div>
     </form>
-    <pre class="output">
-    </pre>
+    <p class="debug"></p>
+    <article class="output">
+      <h1>登金陵鳳凰臺</h1>
+      <p class="author">李白</p>
+      <p>鳳凰臺上鳳凰遊，鳳去臺空江自流。</p>
+      <p>吳宮花草埋幽徑，晉代衣冠成古丘。</p>
+      <p>三山半落青天外，二水中分白鷺洲。</p>
+      <p>總爲浮雲能蔽日，長安不見使人愁。</p>
+    </article>
     <script>
-      const form = document.querySelector("form");
-      const output = document.querySelector(".output");
+      const searchForm = document.querySelector("form.search");
+      const dirCheckbox = document.querySelector("input#vertical-rl");
+      const article = document.querySelector(".output");
 
-      form.onsubmit = lookup;
+      searchForm.onsubmit = lookup;
+      dirCheckbox.onchange = changeDir;
 
+      function changeDir(e) {
+        if (e.target.checked) {
+          article.style.writingMode = "vertical-rl";
+        } else {
+          article.style.writingMode = "horizontal-tb";
+        }
+      }
+      
       function lookup(e) {
         e && e.preventDefault();
-        const fd = new FormData(form);
+        const fd = new FormData(searchForm);
         const author = fd.get("author");
         const title = fd.get("title");
         fetch("api/search?" + new URLSearchParams({author, title}))
@@ -34,11 +115,11 @@
             return r.json();
           })
           .then(j => {
-            output.textContent = JSON.stringify(j, null, 2);
+            article.textContent = JSON.stringify(j, null, 2);
           })
           .catch(error => {
             console.log(error)
-            output.textContent = error.message;
+            article.textContent = error.message;
           });
       };
     </script>
