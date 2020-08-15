@@ -63,6 +63,10 @@
         top: 0;
         right: 0;
       }
+
+      .hide {
+        display: none;
+      }
     </style>
   </head>
   <body>
@@ -73,39 +77,77 @@
     </form>
     <form class="search">
       <label for="author">作者：</label>
-      <input id="author" name="author" type="text" required>
+      <input id="author" name="author" type="text" value="李白" required>
       <label for="title">标题：</label>
-      <input id="title" name="title" type="text" required>
+      <input id="title" name="title" type="text" value="登金陵鳳凰臺" required>
       <div>
         <button>阅读</button>
       </div>
     </form>
-    <p class="debug"></p>
-    <article class="output">
-      <h1>登金陵鳳凰臺</h1>
+    <p class="report"></p>
+    <article class="output hide">
+      <h1 class="title">登金陵鳳凰臺</h1>
       <p class="author">李白</p>
-      <p>鳳凰臺上鳳凰遊，鳳去臺空江自流。</p>
-      <p>吳宮花草埋幽徑，晉代衣冠成古丘。</p>
-      <p>三山半落青天外，二水中分白鷺洲。</p>
-      <p>總爲浮雲能蔽日，長安不見使人愁。</p>
+      <div class="paragraphs">
+        <p>鳳凰臺上鳳凰遊，鳳去臺空江自流。</p>
+        <p>吳宮花草埋幽徑，晉代衣冠成古丘。</p>
+        <p>三山半落青天外，二水中分白鷺洲。</p>
+        <p>總爲浮雲能蔽日，長安不見使人愁。</p>
+      </div>
     </article>
     <script>
       const searchForm = document.querySelector("form.search");
       const dirCheckbox = document.querySelector("input#vertical-rl");
       const article = document.querySelector(".output");
+      const report = document.querySelector(".report");
 
       searchForm.onsubmit = lookup;
-      dirCheckbox.onchange = changeDir;
+      dirCheckbox.onchange = updateDir;
+      loadState();
+      updateDir();
+      lookup();
 
-      function changeDir(e) {
-        if (e.target.checked) {
+      function updateDir() {
+        saveState();
+        if (dirCheckbox.checked) {
           article.style.writingMode = "vertical-rl";
         } else {
           article.style.writingMode = "horizontal-tb";
         }
       }
+
+      function saveState() {
+        const fd = new FormData(searchForm);
+        const author = fd.get("author");
+        const title = fd.get("title");
+        if (author) {
+          localStorage.setItem("author", author);
+        }
+        if (title) {
+          localStorage.setItem("title", title);
+        }
+        localStorage.setItem("uncheck", dirCheckbox.checked ? "" : "1");
+      }
+
+      function loadState() {
+        const author = localStorage.getItem("author");
+        const title = localStorage.getItem("title");
+        if (author) {
+          searchForm.querySelector("#author").value = author;
+        }
+        if (title) {
+          searchForm.querySelector("#title").value = title;
+        }
+        const uncheck = localStorage.getItem("uncheck");
+        if (uncheck) {
+          dirCheckbox.checked = false;
+        }
+      }
       
       function lookup(e) {
+        report.textContent = `Searching ...`;
+        article.classList.add("hide");
+        saveState();
         e && e.preventDefault();
         const fd = new FormData(searchForm);
         const author = fd.get("author");
@@ -115,11 +157,15 @@
             return r.json();
           })
           .then(j => {
-            article.textContent = JSON.stringify(j, null, 2);
+            article.querySelector(".title").textContent = j.title;
+            article.querySelector(".author").textContent = j.author;
+            article.querySelector(".paragraphs").innerHTML = j.paragraphs.map(para => `<p>${para}</p>`).join("\n");
+            article.classList.remove("hide");
+            report.textContent = "";
           })
           .catch(error => {
             console.log(error)
-            article.textContent = error.message;
+            report.textContent = error.message;
           });
       };
     </script>
