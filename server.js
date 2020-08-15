@@ -30,7 +30,7 @@ async function search(author, title) {
 function handler(req, res) {
   res.setHeader("Content-Type", "application/json");
   res.setHeader("Access-Control-Allow-Origin", "*");
-  res.setHeader(`Cache-Control`, "max-age=0, s-maxage=${30 * 24 * 3600}");
+  res.setHeader("Cache-Control", `max-age=0, s-maxage=${30 * 24 * 3600}`);
 
   const url = new URL(req.url,
                       // this localhost does not matter
