@@ -164,7 +164,7 @@
               report.textContent = j.error;
               return;
             }
-            article.querySelector(".title").textContent = j.title;
+            article.querySelector(".title").textContent = j.title || j.rhythmic;
             article.querySelector(".author").textContent = j.author;
             article.querySelector(".paragraphs").innerHTML = j.paragraphs.map(para => `<p>${para}</p>`).join("\n");
             article.classList.remove("hide");

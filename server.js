@@ -68,7 +68,8 @@ async function search(author, title) {
 
   async function find(collectionName) {
     const collection = await db.collection(collectionName);
-    return await collection.findOne({ author, title },
+    const query = collectionName === "shi" ? { author, title } : { author, rhythmic: title };
+    return await collection.findOne(query,
                                     // XXX 没效果
                                     { _id: 0});
   }
