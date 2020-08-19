@@ -2,7 +2,7 @@
 
 一个用来查看诗词的网页：
 
-https://shici-nu.vercel.app/
+https://shi-ci.vercel.app/
 
 ![screen shot of the website](screenshot.png)
 
@@ -12,10 +12,10 @@ https://shici-nu.vercel.app/
 
 和上面网页一样，只支持「作者」+「标题」的精确匹配，URL 举例：
 
-https://shici-nu.vercel.app/api/search?author=杜甫&title=春望
+https://shi-ci.vercel.app/api/search?author=杜甫&title=春望
 
 ```
- $ curl 'https://shici-nu.vercel.app/api/search?author=杜甫&title=春望'
+ $ curl 'https://shi-ci.vercel.app/api/search?author=杜甫&title=春望'
 {
   "author": "杜甫",
   "paragraphs": [
@@ -43,7 +43,7 @@ https://shici-nu.vercel.app/api/search?author=杜甫&title=春望
 
 获得随机一首诗词：
 
-https://shici-nu.vercel.app/api/random
+https://shi-ci.vercel.app/api/random
 
 API 支持支持 CORS。
 
