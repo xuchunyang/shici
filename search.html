@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Search</title>
+    <link rel="stylesheet"
+          href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css"
+          integrity="sha384-JcKb8q3iqJ61gNV9KGb8thSsNjpSL0n8PARn9HuZOnIxN0hoP+VmmDGMN5t9UJ0Z"
+          crossorigin="anonymous">
+    <style>
+      .hide {
+        display: none;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <form>
+        <h1 class="text-center">Search</h1>
+        <div class="form-group">
+          <label for="author">作者</label>
+          <input id="author" name="author" type="text" class="form-control">
+        </div>
+
+        <div class="form-group">
+          <label for="title">标题</label>
+          <input id="title" name="title" type="text" class="form-control">
+        </div>
+
+        <div class="form-group">
+          <label for="shi-ci-select">类型</label>
+          <select id="shi-ci-select" name="type" class="form-control">
+            <option value="shi">诗</option>
+            <option value="ci">词</option>
+          </select>
+        </div>
+
+        <div class="text-center">
+          <button type="submit" class="btn btn-primary">Search</button>
+        </div>
+      </form>
+      <p id="info" class="hide alert alert-warning mt-3"></p>
+      <div id="articles" class="text-center mt-3">
+      </div>
+    </div>
+    <template id="article-template">
+      <article class="mb-3">
+        <h1 class="title">靜夜思</h1>
+        <h2 class="author">李白</h2>
+        <div class="paras">
+          <p>牀前看月光，疑是地上霜。</p>
+          <p>舉頭望山月，低頭思故鄉。</p>
+        </div>
+      </article>
+    </template>
+    <script>
+      const form = document.querySelector("form");
+      const info = document.querySelector("#info");
+      const articles = document.querySelector("#articles");
+      const articleTemplate = document.querySelector("#article-template");
+      form.onsubmit = async (e) => {
+        e.preventDefault();
+        const fd = new FormData(form);
+        const author = fd.get("author");
+        const title = fd.get("title");
+        const type = fd.get("type");
+        console.log(author);
+        console.log(title);
+        console.log(type);
+        if (!author && !title) {
+          info.textContent = "author 和 title 不能同时为空，至少设置一个";
+          info.classList.remove("hide");
+          return;
+        }
+        const url = "api/realsearch?" +
+              new URLSearchParams( { author, title, type } );
+        const s = await fetch(url);
+        const j = await s.json();
+        console.log(j);
+        if (j.error || !j.results.length) {
+          info.textContent = j.error || "No results";
+          info.classList.remove("hide");
+          return;
+        }
+
+        articles.textContent = "";
+        j.results.forEach(res => {
+          const clone = articleTemplate.content.cloneNode(true);
+          const article = clone.querySelector("article");
+          article.querySelector(".title").textContent = res.title || res.rhythmic;
+          article.querySelector(".author").textContent = res.author;
+          const paras = article.querySelector(".paras");
+          paras.textContent = "";
+          res.paragraphs.forEach(p => {
+            const para = document.createElement("p");
+            para.textContent = p;
+            paras.appendChild(para);
+          })
+          articles.appendChild(article);
+        });
+      };
+    </script>
+
+  </body>
+</html>

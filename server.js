@@ -114,8 +114,41 @@ function handler(req, res) {
   }
 }
 
+async function realSearchHandler(r, s) {
+  s.setHeader("Content-Type", "application/json");
+  s.setHeader("Access-Control-Allow-Origin", "*");
+  s.setHeader("Cache-Control", `max-age=0, s-maxage=${30 * 24 * 3600}`);
+  
+  const { author, title, type } = r.query;
+  if (!author || !["shi", "ci"].includes(type)) {
+    s.status(400).json(
+      {
+        error: "Invalid argument, search by author/title/type, type is either shi or ci"
+      });
+    return;
+  }
+  const collectionName = type;
+
+  const db = await connectToDatabase();
+  const collection = db.collection(collectionName);
+  let query = { author };
+  if (title) {
+    if (collectionName === "shi") {
+      query.title = title;
+    } else {
+      query.rhythmic = title;
+    }
+  }
+  console.log(query);
+  const projection = { _id: 0 };
+  const limit = 10;
+  const cursor = await collection.find(query).limit(limit).project(projection);
+  const array = await cursor.toArray();
+  s.status(200).json({count: array.length, results: array});
+}
+
 // https://stackoverflow.com/questions/4981891/node-js-equivalent-of-pythons-if-name-main
 if (require.main === module)
   require("http").createServer(handler) .listen(4000);
 
-module.exports = { handler, randomHandler };
+module.exports = { handler, randomHandler, realSearchHandler };
