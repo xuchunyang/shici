@@ -8,6 +8,10 @@ https://shi-ci.vercel.app/
 
 只支持「作者」+「标题」的精确匹配，且查看诗时需要用繁体，而查看词时需要用简体，上游 [chinese-poetry](https://github.com/chinese-poetry/chinese-poetry) 原始数据如此，本来想试试用 opencc 转换的，但安装出错，暂时放弃。
 
+## Features
+
+- 自动补全作者名、诗词名
+
 ## API
 
 和上面网页一样，只支持「作者」+「标题」的精确匹配，URL 举例：
