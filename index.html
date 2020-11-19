@@ -103,6 +103,14 @@
       const report = document.querySelector(".report");
       const randomBtn = document.querySelector("button.random");
 
+      let canIUseLocalStorage = true;
+      try {
+        localStorage;
+      } catch (e) {
+        canIUseLocalStorage = false;
+        console.log("localStorage is not available:\n", e);
+      }
+
       searchForm.onsubmit = lookup;
       dirCheckbox.onchange = updateDir;
       loadState();
@@ -127,6 +135,7 @@
       }
 
       function saveState() {
+        if (!canIUseLocalStorage) return;
         const fd = new FormData(searchForm);
         const author = fd.get("author");
         const title = fd.get("title");
@@ -140,6 +149,7 @@
       }
 
       function loadState() {
+        if (!canIUseLocalStorage) return;
         const author = localStorage.getItem("author");
         const title = localStorage.getItem("title");
         if (author) {
