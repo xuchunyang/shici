@@ -114,7 +114,7 @@ async function search(author, title) {
 function handler(req, res) {
   res.setHeader("Content-Type", "application/json");
   res.setHeader("Access-Control-Allow-Origin", "*");
-  res.setHeader("Cache-Control", `max-age=0, s-maxage=${30 * 24 * 3600}`);
+  res.setHeader("Cache-Control", `max-age=${3600 * 24}, s-maxage=${30 * 24 * 3600}`);
 
   const url = new URL(
     req.url,
@@ -155,7 +155,7 @@ function handler(req, res) {
 async function realSearchHandler(r, s) {
   s.setHeader("Content-Type", "application/json");
   s.setHeader("Access-Control-Allow-Origin", "*");
-  s.setHeader("Cache-Control", `max-age=0, s-maxage=${30 * 24 * 3600}`);
+  s.setHeader("Cache-Control", `max-age=${3600 * 24}, s-maxage=${30 * 24 * 3600}`);
 
   const { author, title, type } = r.query;
   if (!author || !["shi", "ci"].includes(type)) {
