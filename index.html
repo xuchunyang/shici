@@ -173,14 +173,17 @@
               console.error("HTTP Error! ${resp.status}");
               return;
             }
-            const { count, data: authors } = await resp.json();
-            const myAuthors = authors.filter(name => name.length > 1);
+            const { count, data } = await resp.json();
+            const myAuthors = data
+              .map(({ author }) => author)
+              .filter((name) => name.length > 1);
             console.log(`Get ${myAuthors.length} authors for completion`);
             // IDEA 根据作品数量排序
             const authorAutoComplete = new Awesomplete(searchForm.author, {
               list: myAuthors,
               minChars: 0,
               maxItems: 15,
+              sort: false,
             });
           })();
 
@@ -217,7 +220,7 @@
       let awesompleteLoaded = false;
       function loadAutoComplete(e) {
         if (!awesompleteLoaded) {
-          console.log("Download autocomplete's js/css...");          
+          console.log("Download autocomplete's js/css...");
           awesompleteLoaded = true;
           searchForm.title.onfocus = null;
           searchForm.author.onfocus = null;
