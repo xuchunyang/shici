@@ -137,10 +137,13 @@
           ac = new Awesomplete(searchForm.title, {
             list: [],
             minChars: 0,
-            maxItems: 12,
+            maxItems: 15,
           });
           document.addEventListener("awesomplete-selectcomplete", (e) => {
-            searchForm.readBtn.click();
+            console.log(e);
+            if (e.target === searchForm.title) {
+              searchForm.readBtn.click();
+            }
           });
           const updateCompletion = async (e) => {
             const author = searchForm.author.value;
@@ -151,7 +154,7 @@
             );
             console.log(`Fetch completion for ${author}...done`);
             if (!resp.ok) {
-              console.log(`HTTP Error! ${resp.status}`);
+              console.error(`HTTP Error! ${resp.status}`);
               return;
             }
             acAuthor = author;
@@ -161,8 +164,28 @@
             const shici = shi.concat(ci);
             ac._list = Array.from(new Set(shici));
           };
-          updateCompletion();
           searchForm.title.onfocus = updateCompletion;
+
+          // 补全作者名称
+          (async () => {
+            const resp = await fetch("/api/topAuthors");
+            if (!resp.ok) {
+              console.error("HTTP Error! ${resp.status}");
+              return;
+            }
+            const { count, data: authors } = await resp.json();
+            console.log(`Get ${count} authors for completion`);
+            // IDEA 根据作品数量排序
+            const authorAutoComplete = new Awesomplete(searchForm.author, {
+              list: authors,
+              minChars: 0,
+              maxItems: 15,
+            });
+          })();
+
+          if (document.activeElement === searchForm.title) {
+            updateCompletion();
+          }
         });
       </script>
     </template>
@@ -188,15 +211,18 @@
       lookup();
       randomBtn.onclick = onRandomButton;
       searchForm.title.onfocus = loadAutoComplete;
+      searchForm.author.onfocus = loadAutoComplete;
 
       let awesompleteLoaded = false;
       function loadAutoComplete(e) {
-        console.log("Download autocomplete's js/css...");
         if (!awesompleteLoaded) {
+          console.log("Download autocomplete's js/css...");          
+          awesompleteLoaded = true;
+          searchForm.title.onfocus = null;
+          searchForm.author.onfocus = null;
           const template = document.querySelector("template");
           const clone = template.content.cloneNode(true);
           document.body.appendChild(clone);
-          awesompleteLoaded = true;
         }
       }
 
