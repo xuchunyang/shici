@@ -1,6 +1,9 @@
 const { topAuthors } = require("../server.js");
 
 module.exports = async (req, res) => {
+  res.setHeader("Access-Control-Allow-Origin", "*");
+  res.setHeader("Cache-Control", `max-age=${3600 * 24}, s-maxage=${30 * 24 * 3600}`);
+
   let { limit } = req.query;
   limit = parseInt(limit) || 10;
   const [shi, ci] = await topAuthors(limit);
