@@ -45,7 +45,7 @@ https://shi-ci.vercel.app/api/search?author=杜甫&title=春望
 
 https://shi-ci.vercel.app/api/random
 
-API 支持支持 CORS。
+API 支持 CORS。
 
 ## 数据来源
 
