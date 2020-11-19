@@ -20,9 +20,10 @@ async function connectToDatabase() {
 async function random() {
   const db = await connectToDatabase();
   const collection = await db.collection(shiOrCi());
-  const cursor = await collection.aggregate(
-    [ { $sample: { size: 1 } } ]
-  );
+  const cursor = await collection.aggregate([
+    { $sample: { size: 1 } },
+    { $project: { _id: 0 } },
+  ]);
   const arr = await cursor.toArray();
   return arr[0];
 
@@ -32,10 +33,8 @@ async function random() {
     // db.collection("ci").count()
     const totalCi = 21050;
     const total = totalShi + totalCi;
-    if (Math.random() * total <= totalCi)
-      return "ci";
-    else
-      return "shi";
+    if (Math.random() * total <= totalCi) return "ci";
+    else return "shi";
   }
 }
 
@@ -43,14 +42,14 @@ function randomHandler(req, res) {
   res.setHeader("Content-Type", "application/json");
   res.setHeader("Access-Control-Allow-Origin", "*");
   random()
-    .then(data => {
+    .then((data) => {
       console.log(data);
       res.statusCode = 200;
       res.end(JSON.stringify(data, null, 2));
     })
-    .catch(error => {
+    .catch((error) => {
       res.statusCode = 500;
-      res.end(JSON.stringify({error: error.message}, null, 2));
+      res.end(JSON.stringify({ error: error.message }, null, 2));
     });
 }
 
@@ -62,16 +61,21 @@ async function search(author, title) {
   }
   if (found) {
     // XXX work-around 见下
-    delete found._id
+    delete found._id;
   }
   return found;
 
   async function find(collectionName) {
     const collection = await db.collection(collectionName);
-    const query = collectionName === "shi" ? { author, title } : { author, rhythmic: title };
-    return await collection.findOne(query,
-                                    // XXX 没效果
-                                    { _id: 0});
+    const query =
+      collectionName === "shi"
+        ? { author, title }
+        : { author, rhythmic: title };
+    return await collection.findOne(
+      query,
+      // XXX 没效果
+      { _id: 0 }
+    );
   }
 }
 
@@ -80,9 +84,11 @@ function handler(req, res) {
   res.setHeader("Access-Control-Allow-Origin", "*");
   res.setHeader("Cache-Control", `max-age=0, s-maxage=${30 * 24 * 3600}`);
 
-  const url = new URL(req.url,
-                      // this localhost does not matter
-                      "http://localhost");
+  const url = new URL(
+    req.url,
+    // this localhost does not matter
+    "http://localhost"
+  );
   const author = url.searchParams.get("author");
   const title = url.searchParams.get("title");
   if (!(author && title)) {
@@ -118,13 +124,13 @@ async function realSearchHandler(r, s) {
   s.setHeader("Content-Type", "application/json");
   s.setHeader("Access-Control-Allow-Origin", "*");
   s.setHeader("Cache-Control", `max-age=0, s-maxage=${30 * 24 * 3600}`);
-  
+
   const { author, title, type } = r.query;
   if (!author || !["shi", "ci"].includes(type)) {
-    s.status(400).json(
-      {
-        error: "Invalid argument, search by author/title/type, type is either shi or ci"
-      });
+    s.status(400).json({
+      error:
+        "Invalid argument, search by author/title/type, type is either shi or ci",
+    });
     return;
   }
   const collectionName = type;
@@ -144,11 +150,10 @@ async function realSearchHandler(r, s) {
   const limit = 10;
   const cursor = await collection.find(query).limit(limit).project(projection);
   const array = await cursor.toArray();
-  s.status(200).json({count: array.length, results: array});
+  s.status(200).json({ count: array.length, results: array });
 }
 
 // https://stackoverflow.com/questions/4981891/node-js-equivalent-of-pythons-if-name-main
-if (require.main === module)
-  require("http").createServer(handler) .listen(4000);
+if (require.main === module) require("http").createServer(handler).listen(4000);
 
 module.exports = { handler, randomHandler, realSearchHandler };
