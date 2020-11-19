@@ -17,6 +17,15 @@ async function connectToDatabase() {
   return db;
 }
 
+async function searchByAuthor(author) {
+  const db = await connectToDatabase();
+
+  return await Promise.all([
+    db.collection("shi").find({ author }).project({ title: 1 }).toArray(),
+    db.collection("ci").find({ author }).project({ rhythmic: 1 }).toArray(),
+  ]);
+}
+
 async function random() {
   const db = await connectToDatabase();
   const collection = await db.collection(shiOrCi());
@@ -156,4 +165,4 @@ async function realSearchHandler(r, s) {
 // https://stackoverflow.com/questions/4981891/node-js-equivalent-of-pythons-if-name-main
 if (require.main === module) require("http").createServer(handler).listen(4000);
 
-module.exports = { handler, randomHandler, realSearchHandler };
+module.exports = { handler, randomHandler, realSearchHandler, searchByAuthor };
