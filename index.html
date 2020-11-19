@@ -174,10 +174,11 @@
               return;
             }
             const { count, data: authors } = await resp.json();
-            console.log(`Get ${count} authors for completion`);
+            const myAuthors = authors.filter(name => name.length > 1);
+            console.log(`Get ${myAuthors.length} authors for completion`);
             // IDEA 根据作品数量排序
             const authorAutoComplete = new Awesomplete(searchForm.author, {
-              list: authors,
+              list: myAuthors,
               minChars: 0,
               maxItems: 15,
             });
