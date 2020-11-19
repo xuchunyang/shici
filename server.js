@@ -37,7 +37,6 @@ async function topAuthors(limit = 10) {
       ])
       .toArray(),
   ]);
-  console.log(shi);
   return [shi, ci];
 }
 
