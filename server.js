@@ -17,6 +17,30 @@ async function connectToDatabase() {
   return db;
 }
 
+// 返回诗词作品大于或等于 LIMIT 的作者
+async function topAuthors(limit = 10) {
+  const db = await connectToDatabase();
+
+  const [shi, ci] = await Promise.all([
+    db.collection("shi")
+      .aggregate([
+        { $group: { _id: "$author", number: { $sum: 1 } } },
+        { $sort: { number: -1 } },
+        { $match: { number: { $gte: limit } } },
+      ])
+      .toArray(),
+    db.collection("ci")
+      .aggregate([
+        { $group: { _id: "$author", number: { $sum: 1 } } },
+        { $sort: { number: -1 } },
+        { $match: { number: { $gte: limit } } },
+      ])
+      .toArray(),
+  ]);
+  console.log(shi);
+  return [shi, ci];
+}
+
 async function searchByAuthor(author) {
   const db = await connectToDatabase();
 
@@ -165,4 +189,10 @@ async function realSearchHandler(r, s) {
 // https://stackoverflow.com/questions/4981891/node-js-equivalent-of-pythons-if-name-main
 if (require.main === module) require("http").createServer(handler).listen(4000);
 
-module.exports = { handler, randomHandler, realSearchHandler, searchByAuthor };
+module.exports = {
+  handler,
+  randomHandler,
+  realSearchHandler,
+  searchByAuthor,
+  topAuthors,
+};
